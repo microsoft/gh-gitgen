@@ -1,14 +1,18 @@
 import sys
-import asyncio
 import argparse
-from autogen_agentchat.agents import AssistantAgent
-from autogen_agentchat.ui import Console
-from autogen_ext.models.openai import OpenAIChatCompletionClient
-import aiohttp
-from autogen_agentchat.messages import TextMessage
-from autogen_core import CancellationToken
+import asyncio
 
-# Define a tool to fetch the content of a GitHub issue and its comments
+import aiohttp
+
+import pyperclip
+
+from autogen_core import CancellationToken
+from autogen_agentchat.base import Response
+from autogen_agentchat.messages import TextMessage
+from autogen_agentchat.agents import AssistantAgent
+from autogen_ext.models.openai import OpenAIChatCompletionClient
+
+
 async def get_github_issue_content(owner: str, repo: str, issue_number: int) -> str:
     issue_url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}"
     comments_url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}/comments"
@@ -30,14 +34,32 @@ async def get_github_issue_content(owner: str, repo: str, issue_number: int) -> 
     
     return f"Issue Content:\n{issue_content}\n\nComments:\n{comments_content}"
 
-async def assistant_run_stream(agent: AssistantAgent, task: str, log=True) -> None:
+async def run(agent: AssistantAgent, task: str, log=True) -> str:
     output_stream = agent.on_messages_stream(
                 [TextMessage(content=task, source="user")],
                 cancellation_token=CancellationToken(),
             )
+    last_txt_message = ""
+    
     async for message in output_stream:
-        if log:
-            print(message.chat_message.content)
+        if isinstance(message, Response):
+            last_txt_message = message.chat_message.content
+            if log:
+                print(last_txt_message)
+    return last_txt_message
+
+async def get_user_confirmation(prompt: str) -> bool:
+    while True:
+        user_input = input(f"\n{prompt} (y/n): ").strip().lower()
+        if user_input in ["y", "yes"]:
+            return True
+        elif user_input in ["n", "no"]:
+            return False
+        else:
+            print("\nInvalid input. Please enter 'y' or 'n'.")
+
+async def get_user_input(prompt: str) -> str:
+    return input(f"{prompt}: ").strip()
 
 async def main(owner: str, repo: str, command: str, number: int):
     
@@ -50,16 +72,30 @@ async def main(owner: str, repo: str, command: str, number: int):
         tools=[get_github_issue_content]
     )
     task = f"Fetch comments for the {command} #{number} for the {owner}/{repo} repository"
-    await assistant_run_stream(agent, task, log=False)
+    await run(agent, task, log=False)
 
     print("Thinking...")
-    await assistant_run_stream(agent, "Answer the following questions: 1) What facts are known based on the contents of this issue thread? 2) What is the main issue or problem that needs. 3) What type of a new response from the maintainers would help make progress on this issue? Be concise.", log=False)
+    await run(agent, "Answer the following questions: 1) What facts are known based on the contents of this issue thread? 2) What is the main issue or problem that needs. 3) What type of a new response from the maintainers would help make progress on this issue? Be concise.", log=False)
 
     print("\nSummary: ")
-    await assistant_run_stream(agent, "Summarize what is the status of this issue. Be concise.")
+    await run(agent, "Summarize what is the status of this issue. Be concise.")
 
     print("\nSuggested response: ")
-    await assistant_run_stream(agent, "On behalf of the maintainers, generate a response to the issue/pr that is technical and helpful to make progress. Be concise.")
+    suggested_response = await run(agent, "On behalf of the maintainers, generate a response to the issue/pr that is technical and helpful to make progress. Be concise.")
+
+    while True:
+        if await get_user_confirmation("Is the suggested response good?"):
+            print("Replying to the issue...")
+            # Copy the suggested response to the clipboard
+            pyperclip.copy(suggested_response)
+            print("The suggested response has been copied to your clipboard.")
+            break
+        else:
+            user_feedback = await get_user_input("Please provide your feedback")
+            print(f"\nUser feedback: {user_feedback}")
+            suggested_response = await run(agent, f"Accommodate the following feedback: {user_feedback}. Then generate a response to the issue/pr that is technical and helpful to make progress. Be concise.")
+            print("\nUpdated suggested response: ")
+            print(suggested_response)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process GitHub issues or pull requests.")
