@@ -30,17 +30,19 @@ async def get_github_issue_content(owner: str, repo: str, issue_number: int) -> 
     
     return f"Issue Content:\n{issue_content}\n\nComments:\n{comments_content}"
 
-async def assistant_run_stream(agent: AssistantAgent, task: str) -> None:
-    # Option 2: use Console to print all messages as they appear.
-    await Console(
-        agent.on_messages_stream(
-            [TextMessage(content=task, source="user")],
-            cancellation_token=CancellationToken(),
-        )
-    )
+async def assistant_run_stream(agent: AssistantAgent, task: str, log=True) -> None:
+    output_stream = agent.on_messages_stream(
+                [TextMessage(content=task, source="user")],
+                cancellation_token=CancellationToken(),
+            )
+    async for message in output_stream:
+        if log:
+            print(message.chat_message.content)
 
 async def main(owner: str, repo: str, command: str, number: int):
-    print(f"Processing task: {command} #{number} for repo {owner}/{repo}")
+    
+    print(f"Processing: {command} #{number} for {owner}/{repo}")
+    
     agent = AssistantAgent(
         name="GitGenAgent",
         system_message="You are a helpful AI assistant whose purpose is to reply to GitHub issues and pull requests. Use the content in the thread to generate an auto reply that is technical and helpful to make progress on the issue/pr. Your response must be very concise and focus on precision. Just be direct and to the point.",
@@ -48,14 +50,15 @@ async def main(owner: str, repo: str, command: str, number: int):
         tools=[get_github_issue_content]
     )
     task = f"Fetch comments for the {command} #{number} for the {owner}/{repo} repository"
-    await assistant_run_stream(agent, task)
+    await assistant_run_stream(agent, task, log=False)
 
-    await assistant_run_stream(agent, "What facts are known based on the contents of this issue thread? Be concise.")
+    print("Thinking...")
+    await assistant_run_stream(agent, "Answer the following questions: 1) What facts are known based on the contents of this issue thread? 2) What is the main issue or problem that needs. 3) What type of a new response from the maintainers would help make progress on this issue? Be concise.", log=False)
 
-    await assistant_run_stream(agent, "What is the main issue or problem that needs to be addressed? Be concise.")
+    print("\nSummary: ")
+    await assistant_run_stream(agent, "Summarize what is the status of this issue. Be concise.")
 
-    await assistant_run_stream(agent, "What type of a new response from the maintainers would help make progress on this issue?")
-
+    print("\nSuggested response: ")
     await assistant_run_stream(agent, "On behalf of the maintainers, generate a response to the issue/pr that is technical and helpful to make progress. Be concise.")
 
 if __name__ == "__main__":
