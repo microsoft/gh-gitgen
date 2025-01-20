@@ -3,10 +3,10 @@
 This is an AutoGen powered GitHub CLI extension that generates draft replies for issues and pull requests
 to reduce maintenance overhead for open source projects.
 
-
-To install the extension, use the following command:
+Usage:
 
    ```bash
+   # Installation
    # Make sure you have the latest version of gh installed https://cli.github.com
    gh extension install microsoft/gh-gitgen
    ```
@@ -14,12 +14,11 @@ To install the extension, use the following command:
 Alternatively, run the following command inside the clone repository:
 
    ```bash
-   # git clone git@github.com:microsoft/gh-gitgen.git
-
+   git clone git@github.com:microsoft/gh-gitgen.git
    gh extension install .
    ```
 
-Install the dependencies and set API key:
+(Imporant) Install the dependencies and set API key:
 
    ```bash
    # Create a virtual environment to install the AutoGen package
