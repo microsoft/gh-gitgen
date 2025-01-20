@@ -41,14 +41,21 @@ async def assistant_run_stream(agent: AssistantAgent, task: str) -> None:
 async def main(owner: str, repo: str, command: str, number: int):
     print(f"Processing task: {command} #{number} for repo {owner}/{repo}")
     agent = AssistantAgent(
-        name="assistant",
+        name="GitGenAgent",
+        system_message="You are a helpful AI assistant whose purpose is to reply to GitHub issues and pull requests. Use the content in the thread to generate an auto reply that is technical and helpful to make progress on the issue/pr. Your response must be very concise and focus on precision. Just be direct and to the point.",
         model_client=OpenAIChatCompletionClient(model="gpt-4o"),
         tools=[get_github_issue_content]
     )
     task = f"Fetch comments for the {command} #{number} for the {owner}/{repo} repository"
     await assistant_run_stream(agent, task)
 
-    await assistant_run_stream(agent, "You are the maintainer of the repository. Draft a response to the issue.")
+    await assistant_run_stream(agent, "What facts are known based on the contents of this issue thread? Be concise.")
+
+    await assistant_run_stream(agent, "What is the main issue or problem that needs to be addressed? Be concise.")
+
+    await assistant_run_stream(agent, "Is there a response from the maintainers that would help make progress on this issue? If so, what is it?")
+
+    await assistant_run_stream(agent, "On behalf of the maintainers, generate a response to the issue/pr that is technical and helpful to make progress.")
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:
