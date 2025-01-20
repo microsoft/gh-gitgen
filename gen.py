@@ -52,15 +52,9 @@ async def run(agent: AssistantAgent, task: str, log=True) -> str:
     return last_txt_message
 
 async def get_user_confirmation(prompt: str) -> bool:
-    while True:
-        user_input = await get_user_input(f"{prompt} (y/n)")
-        user_input = user_input.lower().strip()
-        if user_input in ["y", "yes"]:
-            return True
-        elif user_input in ["n", "no"]:
-            return False
-        else:
-            print("\nInvalid input. Please enter 'y' or 'n'.")
+    user_input = await get_user_input(f"{prompt} (y to confirm, or provide feedback)")
+    user_input = user_input.lower().strip()
+    return user_input == "y"
 
 async def get_user_input(prompt: str) -> str:
     return input(f"\n>> {prompt}: ").strip()
@@ -88,14 +82,14 @@ async def main(owner: str, repo: str, command: str, number: int):
     suggested_response = await run(agent, "On behalf of the maintainers, generate a response to the issue/pr that is technical and helpful to make progress. Be concise.")
 
     while True:
-        if await get_user_confirmation("Is the suggested response good?"):
+        user_feedback = await get_user_input("Provide feedback on the suggested response")
+        if user_feedback.lower().strip() == "y":
             print("Replying to the issue...")
             # Copy the suggested response to the clipboard
             pyperclip.copy(suggested_response)
             print("The suggested response has been copied to your clipboard.")
             break
         else:
-            user_feedback = await get_user_input(">> Please provide your feedback")
             print(f"\nSuggested response:")
             suggested_response = await run(agent, f"Accommodate the following feedback: {user_feedback}. Then generate a response to the issue/pr that is technical and helpful to make progress. Be concise.")
 
