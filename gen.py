@@ -22,17 +22,20 @@ async def get_github_issue_content(owner: str, repo: str, issue_number: int) -> 
             if issue_response.status == 200:
                 issue = await issue_response.json()
                 issue_content = issue.get("body", "No content")
+                issue_user = issue.get("user", {}).get("login", "Unknown user")
             else:
                 return f"Error fetching issue: {issue_response.status}"
         
         async with session.get(comments_url) as comments_response:
             if comments_response.status == 200:
                 comments = await comments_response.json()
-                comments_content = "\n\n".join([comment.get("body", "No content") for comment in comments])
+                comments_content = "\n\n".join(
+                    [f"{comment.get('user', {}).get('login', 'Unknown user')} (ID: {comment.get('user', {}).get('id', 'Unknown ID')}): {comment.get('body', 'No content')}" for comment in comments]
+                )
             else:
                 return f"Error fetching comments: {comments_response.status}"
     
-    return f"Issue Content:\n{issue_content}\n\nComments:\n{comments_content}"
+    return f"Issue Content by {issue_user}:\n{issue_content}\n\nComments:\n{comments_content}"
 
 async def run(agent: AssistantAgent, task: str, log=True) -> str:
     output_stream = agent.on_messages_stream(
@@ -50,7 +53,8 @@ async def run(agent: AssistantAgent, task: str, log=True) -> str:
 
 async def get_user_confirmation(prompt: str) -> bool:
     while True:
-        user_input = input(f"\n{prompt} (y/n): ").strip().lower()
+        user_input = await get_user_input(f"{prompt} (y/n)")
+        user_input = user_input.lower().strip()
         if user_input in ["y", "yes"]:
             return True
         elif user_input in ["n", "no"]:
@@ -59,7 +63,7 @@ async def get_user_confirmation(prompt: str) -> bool:
             print("\nInvalid input. Please enter 'y' or 'n'.")
 
 async def get_user_input(prompt: str) -> str:
-    return input(f"{prompt}: ").strip()
+    return input(f"\n>> {prompt}: ").strip()
 
 async def main(owner: str, repo: str, command: str, number: int):
     
@@ -72,7 +76,7 @@ async def main(owner: str, repo: str, command: str, number: int):
         tools=[get_github_issue_content]
     )
     task = f"Fetch comments for the {command} #{number} for the {owner}/{repo} repository"
-    await run(agent, task, log=False)
+    await run(agent, task, log=True)
 
     print("Thinking...")
     await run(agent, "Answer the following questions: 1) What facts are known based on the contents of this issue thread? 2) What is the main issue or problem that needs. 3) What type of a new response from the maintainers would help make progress on this issue? Be concise.", log=False)
@@ -91,11 +95,10 @@ async def main(owner: str, repo: str, command: str, number: int):
             print("The suggested response has been copied to your clipboard.")
             break
         else:
-            user_feedback = await get_user_input("Please provide your feedback")
-            print(f"\nUser feedback: {user_feedback}")
+            user_feedback = await get_user_input(">> Please provide your feedback")
+            print(f"\nSuggested response:")
             suggested_response = await run(agent, f"Accommodate the following feedback: {user_feedback}. Then generate a response to the issue/pr that is technical and helpful to make progress. Be concise.")
-            print("\nUpdated suggested response: ")
-            print(suggested_response)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process GitHub issues or pull requests.")
