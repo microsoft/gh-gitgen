@@ -1,16 +1,16 @@
 # gh-gitgen
 
-## Installation
+To install the extension, run the following command:
 
    ```bash
    gh extension install microsoft/gh-gitgen
    ```
 
-## Usage
+To generate a a draft reply for an issue, use the following command:
 
-```bash
-gh gitgen issue 42
-```
+   ```bash
+   gh gitgen issue 42
+   ```
 
 ## Contributing
 
