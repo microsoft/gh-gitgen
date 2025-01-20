@@ -1,4 +1,4 @@
-# Project
+# gh-gitgen
 
 > This repo has been populated by an initial template to help get you started. Please
 > make sure to update the content to build a great experience for community-building.
@@ -9,6 +9,39 @@ As the maintainer of this project, please make a few updates:
 - Updating SUPPORT.MD with content about this project's support experience
 - Understanding the security reporting process in SECURITY.MD
 - Remove this section from the README
+
+## Installation
+
+1. Clone the repository and navigate to the `gh-gitgen` directory:
+   ```bash
+   git clone <repository-url>
+   cd <repository-directory>/gh-gitgen
+   ```
+
+2. Make the Bash script executable:
+   ```bash
+   chmod +x gh-gitgen
+   ```
+
+3. Install the extension:
+   ```bash
+   gh extension install .
+   ```
+
+## Usage
+
+Test the extension by providing a task:
+
+```bash
+gh gitgen "Generate a README template"
+```
+
+Expected output:
+
+```
+Processing task: Generate a README template
+Agent response: Here's your README template...
+```
 
 ## Contributing
 

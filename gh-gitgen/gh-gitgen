@@ -1,0 +1,14 @@
+#!/bin/bash
+# Main entry point for the GitGen CLI extension
+
+# Check if a task is provided
+if [[ $# -eq 0 ]]; then
+  echo "Usage: gh gitgen <task>"
+  exit 1
+fi
+
+# Combine arguments into the task description
+task="$*"
+
+# Run the Python script with the task as input
+python3 "$(dirname "$0")/gen.py" "$task"
