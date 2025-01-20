@@ -1,4 +1,4 @@
-# gh-gitgen
+# gh-gitgen (Warning: WIP)
 
 This is an AutoGen powered GitHub CLI extension that generates draft replies for issues and pull requests
 to reduce maintenance overhead for open source projects.
