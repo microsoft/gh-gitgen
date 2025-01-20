@@ -6,7 +6,16 @@ To install the extension, run the following command inside the clone repository:
    gh extension install .
    ```
 
-To generate a a draft reply for an issue, use the following command:
+Install the dependencies and set API key:
+
+   ```bash
+   python -m venv .gitgen
+   source .gitgen/bin/activate
+   pip install autogen_agentchat autogen_ext["openai"]
+   export OPENAI_API_KEY=sk-....
+   ```
+
+You are now ready to use the extension. To generate a a draft reply for an issue, use the following command:
 
    ```bash
    gh gitgen issue 42
