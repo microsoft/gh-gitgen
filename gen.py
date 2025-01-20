@@ -53,9 +53,9 @@ async def main(owner: str, repo: str, command: str, number: int):
 
     await assistant_run_stream(agent, "What is the main issue or problem that needs to be addressed? Be concise.")
 
-    await assistant_run_stream(agent, "Is there a response from the maintainers that would help make progress on this issue? If so, what is it?")
+    await assistant_run_stream(agent, "What type of a new response from the maintainers would help make progress on this issue?")
 
-    await assistant_run_stream(agent, "On behalf of the maintainers, generate a response to the issue/pr that is technical and helpful to make progress.")
+    await assistant_run_stream(agent, "On behalf of the maintainers, generate a response to the issue/pr that is technical and helpful to make progress. Be concise.")
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:
