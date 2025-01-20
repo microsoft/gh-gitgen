@@ -1,5 +1,6 @@
 import sys
 import asyncio
+import argparse
 from autogen_agentchat.agents import AssistantAgent
 from autogen_agentchat.ui import Console
 from autogen_ext.models.openai import OpenAIChatCompletionClient
@@ -58,15 +59,16 @@ async def main(owner: str, repo: str, command: str, number: int):
     await assistant_run_stream(agent, "On behalf of the maintainers, generate a response to the issue/pr that is technical and helpful to make progress. Be concise.")
 
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
-        print("Usage: gen.py <owner/repo> <issue|pr> <number>")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description="Process GitHub issues or pull requests.")
+    parser.add_argument("repo_info", help="Repository information in the format 'owner/repo'")
+    parser.add_argument("command", choices=["issue", "pr"], help="Command to execute (issue or pr)")
+    parser.add_argument("number", type=int, help="Issue or PR number")
 
-    repo_info = sys.argv[1]
-    command = sys.argv[2]
-    number = int(sys.argv[3])  # Convert number to integer
+    args = parser.parse_args()
 
-    owner, repo = repo_info.split('/')
+    owner, repo = args.repo_info.split('/')
+    command = args.command
+    number = args.number
 
     if command == "issue":
         asyncio.run(main(owner, repo, command, number))
