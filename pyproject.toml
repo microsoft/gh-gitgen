@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "gh-gitgen"
+name = "gitgen"
 version = "0.1.0"
 license = {file = "LICENSE"}
 description = "A Python project for GitHub issue content retrieval and user interaction."
@@ -22,7 +22,7 @@ dependencies = [
 ]
 
 [project.scripts]
-gitgen = "gh_gitgen._gitgen:main"
+gitgen = "gitgen._gitgen:main"
 
 [dependency-groups]
 dev = [
