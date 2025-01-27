@@ -1,4 +1,4 @@
-# gh-gitgen (Warning: WIP)
+# gitgen (Warning: WIP)
 
 This is an AutoGen powered CLI that generates draft replies for issues and pull requests
 to reduce maintenance overhead for open source projects.
