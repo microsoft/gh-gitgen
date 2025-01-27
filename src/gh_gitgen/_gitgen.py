@@ -8,7 +8,7 @@ import aiohttp
 import pyperclip
 from autogen_agentchat.agents import AssistantAgent
 from autogen_agentchat.base import Response
-from autogen_agentchat.messages import TextMessage
+from autogen_agentchat.messages import TextMessage, ToolCallSummaryMessage
 from autogen_core import CancellationToken
 from autogen_ext.models.openai import OpenAIChatCompletionClient
 
@@ -44,7 +44,7 @@ async def get_github_issue_content(owner: str, repo: str, issue_number: int) -> 
     return f"Issue Content by {issue_user}:\n{issue_content}\n\nComments:\n{comments_content}"
 
 
-async def run(agent: AssistantAgent, task: str, log=True) -> str:
+async def run(agent: AssistantAgent, task: str, log: bool=True) -> str:
     output_stream = agent.on_messages_stream(
         [TextMessage(content=task, source="user")],
         cancellation_token=CancellationToken(),
@@ -53,8 +53,12 @@ async def run(agent: AssistantAgent, task: str, log=True) -> str:
 
     async for message in output_stream:
         if isinstance(message, Response):
-            assert isinstance(message.chat_message, TextMessage)
-            last_txt_message = message.chat_message.content
+            if isinstance(message.chat_message, TextMessage):
+                last_txt_message += message.chat_message.content
+            elif isinstance(message.chat_message, ToolCallSummaryMessage):
+                last_txt_message += message.chat_message.content
+            else:
+                raise ValueError(f"Unexpected message type: {message.chat_message}")
             if log:
                 print(last_txt_message)
     return last_txt_message
