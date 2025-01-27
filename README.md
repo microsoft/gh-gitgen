@@ -1,24 +1,19 @@
 # gh-gitgen (Warning: WIP)
 
-This is an AutoGen powered GitHub CLI extension that generates draft replies for issues and pull requests
+This is an AutoGen powered CLI that generates draft replies for issues and pull requests
 to reduce maintenance overhead for open source projects.
 
 Simple installation and CLI:
 
    ```bash
-   # Make sure you have the latest version of gh installed https://cli.github.com
-   gh extension install microsoft/gh-gitgen
-   # Run this command in the repository for which you want to generate the draft reply
-   gh gitgen issue 42
+   gitgen --repo microsoft/autogen issue 5212
    ```
 
-*Important*: Install the dependencies and set API key:
+*Important*: Install the dependencies and set OpenAI API key:
 
    ```bash
-   # Create a virtual environment to install the AutoGen package
-   python -m venv .gitgen
-   source .gitgen/bin/activate
-   pip install autogen_agentchat autogen_ext["openai"]
+   uv sync --all-extras
+   source .venv/bin/activate
    export OPENAI_API_KEY=sk-....
    ```
 
