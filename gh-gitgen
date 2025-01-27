@@ -1,5 +1,0 @@
-#!/bin/bash
-# Main entry point for the GitGen CLI extension
-
-# Run the Python script with the repo info, command, and number as input
-python3 "$(dirname "$0")/src/gh_gitgen/_gitgen.py" "$@"
